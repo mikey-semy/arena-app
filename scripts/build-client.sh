@@ -33,6 +33,8 @@ cp "${root}/game/osp/server.cfg"            "${www}/osp-cfg/server.cfg"
 cp "${root}/game/osp/cfg-modes/modes.txt"   "${www}/osp-cfg/cfg-modes/modes.txt"
 cp "${root}/game/osp/cfg-modes/arena.cfg"   "${www}/osp-cfg/cfg-modes/arena.cfg"
 cp "${root}/game/osp/cfg-maps/camaps.txt"   "${www}/osp-cfg/cfg-maps/camaps.txt"
+# Клавиши для браузера: ESC там занят, а без выбора команды в CA не играют
+cp "${root}/client/shell/arena.cfg"         "${www}/osp-cfg/arena.cfg"
 # arena.cfg последней строкой подключает secrets.cfg; в браузере rcon не нужен,
 # но пустая заглушка избавляет от ошибки в консоли
 echo "// В браузере rcon не нужен." > "${www}/osp-cfg/secrets.cfg"
@@ -61,6 +63,7 @@ c["osp"] = {"files": [{"src": f"osp/{n}", "dst": "/osp"} for n in (
     "zz-osp-pak3.pk3", "zz-osp-server3a.pk3")] + [
     {"src": "osp-cfg/server.cfg", "dst": "/osp"},
     {"src": "osp-cfg/secrets.cfg", "dst": "/osp"},
+    {"src": "osp-cfg/arena.cfg", "dst": "/osp"},
     {"src": "osp-cfg/cfg-modes/modes.txt", "dst": "/osp/cfg-modes"},
     {"src": "osp-cfg/cfg-modes/arena.cfg", "dst": "/osp/cfg-modes"},
     {"src": "osp-cfg/cfg-maps/camaps.txt", "dst": "/osp/cfg-maps"},

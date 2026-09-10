@@ -28,6 +28,25 @@ canvas{display:block;width:100vw;height:100vh}
 #need p{margin:0 0 1rem}
 #need .note{color:#6f6a64; font-size:12px; line-height:1.7}
 #source{color:#4a4640; font-size:11px}
+
+/* Подсказка о клавишах. Нужна не для удобства: игра сама пишет «нажми ESC»,
+   а в браузере это не работает, и без подсказки человек просто не начнёт. */
+#keys{
+  position:fixed; left:50%; bottom:1.25rem; transform:translateX(-50%);
+  display:flex; align-items:center; gap:1rem;
+  background:#0f0f10; border:1px solid #26262a; border-left:3px solid #c1440e;
+  color:#d8d4cf; font:13px/1.5 ui-monospace,Menlo,monospace;
+  padding:.6rem 1rem; z-index:10;
+}
+#keys b{color:#6f6a64; text-transform:uppercase; letter-spacing:.12em; font-size:11px}
+#keys kbd{
+  background:#c1440e; color:#fff; padding:.1rem .4rem; margin:0 .15rem;
+  font:inherit; font-weight:700;
+}
+#keys-close{
+  background:transparent; border:0; color:#6f6a64; cursor:pointer;
+  font-size:18px; line-height:1; padding:0 .25rem;
+}
 #source a{color:#6f6a64}
 #pick{position:absolute; width:1px; height:1px; opacity:0; pointer-events:none}
 .pick{
@@ -38,6 +57,11 @@ canvas{display:block;width:100vw;height:100vh}
 .pick:hover{background:#e2521a; border-color:#e2521a}
 </style>
 <canvas id=canvas></canvas>
+<div id=keys hidden>
+  <b id=keys-title></b>
+  <span id=keys-list></span>
+  <button type="button" id="keys-close">×</button>
+</div>
 <div id=loading>
   <h1>arena</h1>
   <div id=bar><i></i></div>
@@ -162,6 +186,10 @@ if (fs_game === "osp" && !connectTo) {
     args.push("+exec server.cfg");
     args.push("+set sv_pure 0");   // после конфига: там стоит 1, а локально это лишнее
 }
+
+// Клавиши для браузера. Выполняется всегда, а не только в локальной игре:
+// без выбора команды Clan Arena не начнётся ни там, ни там.
+if (fs_game === "osp") args.push("+exec arena.cfg");
 
 if (name) args.push(`+set name ${name}`);
 if (connectTo) args.push(`+connect ${connectTo}`);
@@ -306,6 +334,24 @@ const remember = (line) => {
     console.log(line);
 };
 
+/**
+ * Показывает, чем заменены клавиши меню.
+ *
+ * Quake пишет «press ESC and use the START menu to play». В браузере ESC
+ * снимает захват мыши и до меню не доходит, а в Clan Arena без выбора команды
+ * человек остаётся зрителем и не понимает, что сделал не так.
+ */
+function showKeys() {
+    if (fs_game !== "osp") return;
+    document.getElementById("keys-title").textContent = ru ? "Играть:" : "Play:";
+    document.getElementById("keys-list").innerHTML = ru
+        ? "<kbd>K</kbd> красные · <kbd>L</kbd> синие · <kbd>O</kbd> смотреть · <kbd>P</kbd> готов · <kbd>M</kbd> меню"
+        : "<kbd>K</kbd> red · <kbd>L</kbd> blue · <kbd>O</kbd> spectate · <kbd>P</kbd> ready · <kbd>M</kbd> menu";
+    const keys = document.getElementById("keys");
+    keys.hidden = false;
+    document.getElementById("keys-close").addEventListener("click", () => keys.remove());
+}
+
 remember(`АРГУМЕНТЫ: ${args.join(" ")}`);
 
 ioquake3({
@@ -364,8 +410,12 @@ ioquake3({
             module.removeRunDependency("content");
         }
     }],
-    // Движок дошёл до первого кадра — экран загрузки больше не нужен
-    onRuntimeInitialized: () => loading.remove(),
+    // Движок дошёл до первого кадра — экран загрузки больше не нужен,
+    // зато нужна подсказка: игра предлагает нажать ESC, а он тут не работает.
+    onRuntimeInitialized: () => {
+        loading.remove();
+        showKeys();
+    },
     // Иначе исключение внутри движка уходит в пустоту, и снаружи это выглядит
     // как чёрный экран без единой строчки объяснения
     onAbort: (reason) => remember(`ДВИЖОК ОСТАНОВЛЕН: ${reason}`),
