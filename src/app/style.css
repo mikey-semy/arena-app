@@ -1,0 +1,297 @@
+/* Оформление.
+ *
+ * Ориентир — интерфейс самой Quake 3: почти чёрный металл, ржавчина вместо
+ * акцента, прямые углы и заглавные буквы. Скруглений нет нигде намеренно:
+ * скруглённый угол читается как «приложение», прямой — как «пульт».
+ *
+ * Тема одна, тёмная. В игру заходят вечером, и белый экран перед матчем бьёт
+ * по глазам сильнее, чем отсутствие выбора.
+ */
+:root {
+  --bg: #0a0a0b;
+  --panel: #0f0f10;
+  --line: #26262a;
+  --line-hot: #3a2018;
+  --text: #d8d4cf;
+  --dim: #6f6a64;
+  /* Ржавчина, а не оранжевый: тот же цвет, что на текстурах Quake 3 */
+  --rust: #c1440e;
+  --rust-hot: #e2521a;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    15px / 1.55 "IBM Plex Sans",
+    system-ui,
+    sans-serif;
+}
+
+/* Ники, теги кланов и счёт — моноширинным. Это данные, а не проза: в столбик
+   они должны выстраиваться по символам, как в таблице счёта в игре. */
+/* Ники, теги кланов и счёт — моноширинным. Это данные, а не проза: в столбик
+   они должны выстраиваться по символам, как в таблице счёта в игре. */
+b,
+code,
+.mono {
+  font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  font-weight: 600;
+}
+
+a {
+  color: var(--rust-hot);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--text);
+}
+
+.shell {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+  padding-bottom: 1rem;
+  /* Двойная линия: тонкая тёмная и толстая ржавая под ней */
+  border-bottom: 3px solid var(--rust);
+  flex-wrap: wrap;
+}
+.top h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.top nav {
+  display: flex;
+  gap: 1.25rem;
+}
+.top nav a {
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding-bottom: 0.2rem;
+  border-bottom: 2px solid transparent;
+}
+.top nav a:hover {
+  color: var(--text);
+}
+.top nav a.active {
+  color: var(--text);
+  border-bottom-color: var(--rust);
+}
+.top .spacer {
+  flex: 1;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  /* Ржавая полоса слева — тот же приём, что у панелей в игре */
+  border-left: 3px solid var(--rust);
+  padding: 1.25rem 1.5rem;
+  margin-top: 1.25rem;
+}
+.panel h2,
+.panel h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.dim {
+  color: var(--dim);
+}
+.row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+label {
+  display: block;
+  margin-top: 1rem;
+}
+label span {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--dim);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+input,
+select {
+  background: #000;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 0;
+  padding: 0.5rem 0.7rem;
+  font: inherit;
+  min-width: 13rem;
+}
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--rust);
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--rust);
+  color: #fff;
+  border: 1px solid var(--rust);
+  border-radius: 0;
+  padding: 0.5rem 1.1rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+button:hover {
+  background: var(--rust-hot);
+  border-color: var(--rust-hot);
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Второстепенное действие — контур без заливки: выйти из клана не должно
+   выглядеть так же весомо, как вступить. */
+button.quiet {
+  background: transparent;
+  color: var(--dim);
+  border-color: var(--line);
+}
+button.quiet:hover {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--dim);
+}
+
+/* Кнопка входа держит цвет Discord, а не наш: она должна читаться как
+   «это Discord» раньше, чем человек дочитает подпись. */
+button.discord {
+  background: #5865f2;
+  border-color: #5865f2;
+}
+button.discord:hover {
+  background: #4752c4;
+  border-color: #4752c4;
+}
+
+.avatar {
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid var(--line);
+}
+
+/* Обвязка — Oswald: узкий и тяжёлый, как надписи на технике. Кириллица у него
+   есть, в отличие от большинства гарнитур с таким характером. */
+.top h1,
+.top nav a,
+.panel h2,
+.panel h3,
+label span,
+button {
+  font-family: "Oswald", "IBM Plex Sans", system-ui, sans-serif;
+}
+
+/* Логотип игры — знак принадлежности, а не марка сайта: у сайта своё имя.
+   Картинка из pak0 нарисована на чёрном, и вырезать фон не нужно —
+   screen делает чёрное прозрачным на тёмном фоне сам. */
+.mark {
+  height: 2rem;
+  width: auto;
+  mix-blend-mode: screen;
+  flex-shrink: 0;
+}
+
+/* Переключатель языка: два тумблера встык, без зазора — читается как один
+   орган управления, а не как две кнопки. */
+.lang {
+  display: inline-flex;
+}
+.lang button {
+  background: transparent;
+  color: var(--dim);
+  border: 1px solid var(--line);
+  padding: 0.3rem 0.55rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+}
+.lang button + button {
+  border-left: 0;
+}
+.lang button:hover {
+  color: var(--text);
+  background: transparent;
+}
+.lang button.on {
+  color: var(--text);
+  border-color: var(--rust);
+  background: transparent;
+}
+.lang button.on + button {
+  border-left: 0;
+}
+
+/* Кнопка Steam держит их цвет по той же причине, что и Discord: человек должен
+   понять, куда его уводят, раньше, чем дочитает подпись. */
+button.steam {
+  background: #1b2838;
+  border-color: #2a475e;
+}
+button.steam:hover {
+  background: #2a475e;
+  border-color: #66c0f4;
+}
+
+/* Список игроков в панели: строки разделены, забаненный виден сразу. */
+.player {
+  border-top: 1px solid var(--line);
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+}
+.player:first-of-type {
+  border-top: 0;
+}
+.banned {
+  color: var(--rust-hot);
+  font-size: 0.85rem;
+}
+
+/* Подвал: обязательная ссылка на исходники движка, и незачем ей быть заметной. */
+.bottom {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
