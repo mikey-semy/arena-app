@@ -31,17 +31,24 @@ canvas{display:block;width:100vw;height:100vh}
 
 /* Подсказка о клавишах. Нужна не для удобства: игра сама пишет «нажми ESC»,
    а в браузере это не работает, и без подсказки человек просто не начнёт. */
+/* Столбиком, а не строкой: в строку пять пунктов не влезают и переносятся
+   посередине, разрывая клавишу и её значение. */
 #keys{
-  position:fixed; left:50%; bottom:1.25rem; transform:translateX(-50%);
-  display:flex; align-items:center; gap:1rem;
+  position:fixed; left:1.25rem; bottom:1.25rem;
+  display:grid; grid-template-columns:1fr auto; align-items:start;
+  column-gap:1.5rem; row-gap:.6rem;
   background:#0f0f10; border:1px solid #26262a; border-left:3px solid #c1440e;
   color:#d8d4cf; font:13px/1.5 ui-monospace,Menlo,monospace;
-  padding:.6rem 1rem; z-index:10;
+  padding:.7rem 1rem; z-index:10;
 }
 #keys b{color:#6f6a64; text-transform:uppercase; letter-spacing:.12em; font-size:11px}
+#keys-list{
+  grid-column:1/-1;
+  display:grid; grid-template-columns:auto auto; gap:.35rem .7rem; align-items:center;
+}
 #keys kbd{
-  background:#c1440e; color:#fff; padding:.1rem .4rem; margin:0 .15rem;
-  font:inherit; font-weight:700;
+  background:#c1440e; color:#fff; padding:.1rem 0; font:inherit; font-weight:700;
+  min-width:1.6em; text-align:center;
 }
 /* display:flex ниже перебивает правило браузера [hidden]{display:none},
    и полоса висела бы пустой ещё до того, как её заполнили */
@@ -58,6 +65,16 @@ canvas{display:block;width:100vw;height:100vh}
   padding:.55rem 1.2rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
 }
 .pick:hover{background:#e2521a; border-color:#e2521a}
+
+/* Экран после выхода из игры. Движок к этому моменту стоит на титрах id
+   Software и вкладку закрыть не может — дверь обратно рисуем сами. */
+#over{
+  position:fixed; inset:0; z-index:20;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.5rem;
+  background:#0a0a0b; color:#d8d4cf;
+  font:14px/1.5 ui-monospace,Menlo,monospace; letter-spacing:.08em;
+}
+#over p{margin:0; text-transform:uppercase; color:#6f6a64; font-size:12px}
 </style>
 <canvas id=canvas></canvas>
 <div id=keys hidden>

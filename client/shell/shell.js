@@ -11,8 +11,14 @@ function breakdown(what) {
   const line = document.getElementById("what");
   if (line) line.textContent = String(what);
 }
-addEventListener("error", (e) => breakdown(`сбой: ${e.message}`));
-addEventListener("unhandledrejection", (e) => breakdown(`сбой: ${e.reason}`));
+function mishap(what) {
+  /* Выход из игры движок сообщает исключением ExitStatus. Это не поломка,
+     и говорить о ней «сбой» — врать человеку, который сам нажал «Quit». */
+  if (String(what).includes("ExitStatus")) return gameOver();
+  breakdown(`сбой: ${what}`);
+}
+addEventListener("error", (e) => mishap(e.error ?? e.message));
+addEventListener("unhandledrejection", (e) => mishap(e.reason));
 
 // Минимальная графика — это не про пинг (пинг это RTT сети, рендер на него не
 // влияет), а про время кадра, стабильность фреймтайма и объём загрузки.
@@ -226,6 +232,20 @@ async function gameStore() {
   }
 }
 
+/**
+ * Есть ли файл в хранилище. Отдельно от чтения намеренно: проверять наличие
+ * через readStored значило бы тянуть 367 МБ pak0 в память ради ответа «да».
+ */
+async function haveStored(store, name) {
+  if (!store) return false;
+  try {
+    await store.getFileHandle(name);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function readStored(store, name) {
   if (!store) return undefined;
   try {
@@ -316,13 +336,61 @@ const remember = (line) => {
  */
 function showKeys() {
   if (fs_game !== "osp") return;
+  const rows = ru
+    ? [
+        ["K", "красные"],
+        ["L", "синие"],
+        ["O", "смотреть"],
+        ["P", "готов"],
+        ["M", "меню"],
+      ]
+    : [
+        ["K", "red"],
+        ["L", "blue"],
+        ["O", "spectate"],
+        ["P", "ready"],
+        ["M", "menu"],
+      ];
   document.getElementById("keys-title").textContent = ru ? "Играть:" : "Play:";
-  document.getElementById("keys-list").innerHTML = ru
-    ? "<kbd>K</kbd> красные · <kbd>L</kbd> синие · <kbd>O</kbd> смотреть · <kbd>P</kbd> готов · <kbd>M</kbd> меню"
-    : "<kbd>K</kbd> red · <kbd>L</kbd> blue · <kbd>O</kbd> spectate · <kbd>P</kbd> ready · <kbd>M</kbd> menu";
+  document.getElementById("keys-list").replaceChildren(
+    ...rows.flatMap(([key, what]) => {
+      const box = document.createElement("kbd");
+      box.textContent = key;
+      const label = document.createElement("span");
+      label.textContent = what;
+      return [box, label];
+    }),
+  );
   const keys = document.getElementById("keys");
   keys.hidden = false;
   document.getElementById("keys-close").addEventListener("click", () => keys.remove());
+}
+
+/**
+ * Игра закончилась сама: человек выбрал «Quit» в меню.
+ *
+ * Нативный Quake на этом закрывает окно, а в браузере закрывать нечего: движок
+ * останавливается на экране титров id Software, и выйти оттуда уже некуда.
+ * Показываем дверь обратно на сайт — оттуда берётся новый билет на вход.
+ */
+function gameOver() {
+  if (document.getElementById("over")) return;
+  /* Свой признак языка, а не общий ru: тот объявлен ниже по файлу, и позовись
+     эта функция раньше — она упала бы сама, вместо того чтобы показать выход. */
+  const inRu = navigator.language.startsWith("ru");
+  const box = document.createElement("div");
+  box.id = "over";
+  const text = document.createElement("p");
+  text.textContent = inRu ? "Ты вышел из игры." : "You left the game.";
+  const back = document.createElement("button");
+  back.type = "button";
+  back.className = "pick";
+  back.textContent = inRu ? "Вернуться на сайт" : "Back to the site";
+  back.addEventListener("click", () => {
+    location.href = "/";
+  });
+  box.append(text, back);
+  document.body.append(box);
 }
 
 remember(`АРГУМЕНТЫ: ${args.join(" ")}`);
@@ -348,7 +416,7 @@ ioquake3({
         // просить указывать папку по файлу — издевательство.
         const missing = [];
         for (const file of files.filter((f) => f.own))
-          if (!(await readStored(store, nameOf(file)))) missing.push(nameOf(file));
+          if (!(await haveStored(store, nameOf(file)))) missing.push(nameOf(file));
 
         if (missing.length) {
           bar.style.width = "0%";
@@ -393,5 +461,6 @@ ioquake3({
   },
   // Иначе исключение внутри движка уходит в пустоту, и снаружи это выглядит
   // как чёрный экран без единой строчки объяснения
+  onExit: () => gameOver(),
   onAbort: (reason) => remember(`ДВИЖОК ОСТАНОВЛЕН: ${reason}`),
 });
