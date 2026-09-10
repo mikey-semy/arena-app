@@ -413,15 +413,47 @@ if (existsSync(GAME_ROOT)) {
       prefix: "/play/",
       // Второй раз украшать reply нельзя — первый уже это сделал
       decorateReply: false,
-      // Паки не меняются никогда: у них в имени версия игры, а не хеш
-      maxAge: "30d",
+      /**
+       * Долго кэшируем ТОЛЬКО паки: они действительно не меняются.
+       *
+       * Изначально стоял общий maxAge на весь /play/ — и это оказалось
+       * ошибкой, стоившей полдня. Под тем же путём лежат index.html, движок
+       * и конфиг, а они меняются каждую выкатку. Браузер честно держал их
+       * месяц, и человек видел зависший экран подготовки от старой версии,
+       * которую уже ничем не починить, кроме очистки кэша.
+       */
+      setHeaders(reply, path) {
+        reply.header(
+          "cache-control",
+          path.endsWith(".pk3") ? "public, max-age=31536000, immutable" : "no-cache",
+        );
+      },
     });
   });
   app.log.info(`отдаю игру из ${GAME_ROOT}`);
 }
 
 if (existsSync(WEB_ROOT)) {
-  await app.register(fastifyStatic, { root: WEB_ROOT });
+  await app.register(fastifyStatic, {
+    root: WEB_ROOT,
+    /**
+     * Разные правила для разного.
+     *
+     * Файлы в /assets/ содержат хеш содержимого в имени: изменилось
+     * содержимое — изменилось имя. Их можно кэшировать навсегда, и тогда
+     * браузер перестаёт спрашивать про них при каждой загрузке.
+     *
+     * index.html, наоборот, нельзя кэшировать никогда: именно он говорит,
+     * какие сейчас имена у файлов. Закэшируется он — человек останется на
+     * старой версии до тех пор, пока не догадается перезагрузить.
+     */
+    setHeaders(reply, path) {
+      reply.header(
+        "cache-control",
+        path.includes("/assets/") ? "public, max-age=31536000, immutable" : "no-cache",
+      );
+    },
+  });
   // Пути вроде /clans/OSP существуют только в браузере: на диске такого файла
   // нет, и без этого перезагрузка страницы отдавала бы 404.
   //
@@ -434,6 +466,8 @@ if (existsSync(WEB_ROOT)) {
   app.setNotFoundHandler((request, reply) => {
     if (REAL_404.some((prefix) => request.url.startsWith(prefix)))
       return reply.code(404).send({ error: "Нет такого" });
+    // Тот же no-cache, что и для файла напрямую: это точка входа
+    reply.header("cache-control", "no-cache");
     return reply.sendFile("index.html");
   });
   app.log.info(`отдаю приложение из ${WEB_ROOT}`);
