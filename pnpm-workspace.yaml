@@ -1,2 +1,5 @@
 allowBuilds:
+  # Нативный аддон libquiche: без его postinstall нет бинаря HTTP/3,
+  # а без HTTP/3 нет WebTransport
+  '@fails-components/webtransport-transport-http3-quiche': true
   esbuild: true

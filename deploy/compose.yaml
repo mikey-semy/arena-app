@@ -1,0 +1,116 @@
+# Боевой контур на netcup. Лежит в /srv/arena.
+#
+# Отличий от локального compose.yaml три, и все вынужденные:
+#   1. Порты наружу не пробрасываются — снаружи виден только Traefik.
+#   2. Маршрут и сертификат задаются ярлыками: Traefik читает их через
+#      docker-сокет, чужие файлы мы не трогаем.
+#   3. У каждого сервиса есть потолок памяти. На хосте 8 ГБ и полтора десятка
+#      соседей, включая чужую почту: утечка без потолка утащит за собой всех.
+services:
+  site:
+    image: arena-app/site:dev
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # В контейнере слушать петлю нельзя — до нас не достучится Traefik.
+      # Наружу порт при этом не открыт.
+      SITE_HOST: 0.0.0.0
+      # Адрес моста нужен сайту дважды: он его вписывает в ссылку «Играть»
+      # и разрешает в заголовке connect-src, иначе браузер запретит соединение
+      ARENA_PUBLIC_BRIDGE: arena.sethub.org:27961
+    networks: [edge, inside]
+    volumes:
+      # Браузерный клиент и игровые паки отдаёт сайт: отдельный веб-сервер
+      # ради статики — лишняя движущаяся часть
+      - ./game/client:/app/game/client:ro
+      # baseq3 сюда НЕ монтируется намеренно: это контент id Software, и
+      # раздавать его мы не имеем права. Игрок указывает свою папку с игрой,
+      # браузер держит копию у себя. Заодно первый заход похудел на 385 МБ.
+      - ./game/content/osp:/app/game/client/osp:ro
+      - ./game/maps:/app/game/client/maps:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 512m
+    labels:
+      traefik.enable: "true"
+      # Без явного указания сети Traefik может выбрать не ту, если контейнер
+      # состоит в нескольких — а он состоит.
+      traefik.docker.network: edge
+      traefik.http.routers.arena.rule: Host(`arena.sethub.org`)
+      traefik.http.routers.arena.entrypoints: websecure
+      traefik.http.routers.arena.tls.certresolver: letsencrypt
+      traefik.http.services.arena.loadbalancer.server.port: "3100"
+
+  # Игровой сервер. Порт наружу открыт намеренно: кто хочет, подключается
+  # своим нативным клиентом Quake, минуя браузер. Ради этого мы и не стали
+  # менять размер пакетов в движке — иначе такие клиенты отвалились бы.
+  q3:
+    image: arena-app/q3:dev
+    restart: unless-stopped
+    ports:
+      - "27960:27960/udp"
+    volumes:
+      - ./game/content/baseq3:/q3/baseq3:ro
+      - ./game/maps/overkill.pk3:/q3/osp/overkill.pk3:ro
+      - ./game/osp/server.cfg:/q3/osp/server.cfg:ro
+      - ./game/osp/cfg-modes:/q3/osp/cfg-modes:ro
+      - ./game/osp/cfg-maps/camaps.txt:/q3/osp/cfg-maps/camaps.txt:ro
+      - ./game/osp/secrets.cfg:/q3/osp/secrets.cfg:ro
+      # Логи наружу — из них считается рейтинг
+      - ./var/logs:/q3/osp/logs
+    networks: [inside]
+    mem_limit: 256m
+
+  # Мост: WebTransport снаружи, UDP внутрь. Отдельный процесс от сайта
+  # намеренно — выкатка сайта не должна выкидывать людей из матча.
+  bridge:
+    image: arena-app/site:dev
+    restart: unless-stopped
+    command: ["pnpm", "tsx", "src/proxy/bridge.ts"]
+    env_file: .env
+    environment:
+      ARENA_BRIDGE_HOST: 0.0.0.0
+      # По имени сервиса во внутренней сети: игровой сервер наружу не смотрит
+      ARENA_GAME_HOST: q3
+      # Сертификат тот же, что у сайта. Достаётся из acme.json Traefik
+      # скриптом extract-cert.sh — выпускать второй нечем, 80-й порт занят.
+      ARENA_CERT_FILE: /cert/cert.pem
+      ARENA_KEY_FILE: /cert/key.pem
+      # Мост читает базу ради одного: проверить бан на входе. Билет живёт час,
+      # и без этой проверки забаненный доигрывал бы час по выданной ссылке.
+      DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - "27961:27961/udp"
+    volumes:
+      - ./var/cert:/cert:ro
+    networks: [inside]
+    depends_on: [q3]
+    mem_limit: 256m
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: arena
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?нужен POSTGRES_PASSWORD}
+      POSTGRES_DB: arena
+    # Только во внутренней сети: базе нечего делать ни в интернете, ни в edge
+    networks: [inside]
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arena -d arena"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    mem_limit: 512m
+
+networks:
+  # Сеть маршрутизатора, заведена не нами
+  edge:
+    external: true
+  inside:
+
+volumes:
+  db-data:

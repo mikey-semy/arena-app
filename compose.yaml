@@ -1,16 +1,52 @@
 services:
   q3:
     build:
-      context: https://github.com/wokoman/docker-quake3-osp-server.git
+      context: ./game
+      dockerfile: Dockerfile
+    image: ghcr.io/mikey-semy/arena-q3:latest
     restart: unless-stopped
     ports:
       - "27960:27960/udp"
     volumes:
-      # Свой pak0.pk3 — в git его нет и не будет. Путь задаётся в .env
-      - ${Q3_PAK0}:/usr/share/games/quake3/baseq3/pak0.pk3:ro
-      # Карта одна: pro-q3dm6
-      - ./game/maps:/usr/share/games/quake3/baseq3/maps-extra:ro
-      - ./game/osp/server.cfg:/usr/share/games/quake3/osp/server.cfg:ro
+      # Свой baseq3 целиком: pak0.pk3 из купленной копии плюс паки поинт-релиза
+      # 1.32. Каталогом, а не одним файлом, — при sv_pure 1 у клиента и сервера
+      # должен сойтись весь набор, а не только pak0. В git не попадает, путь в .env
+      - ${Q3_BASEQ3}:/q3/baseq3:ro
+
+      # Отдельного маунта под pro-q3dm6 нет: карта лежит в pak6.pk3 официального
+      # поинт-релиза 1.32, id положила туда четыре карты ProMode.
+      # Остальные карты — из game/maps/, по файлу на строку: движок ищет pk3
+      # прямо в каталоге мода, подкаталог он не просматривает
+      - ./game/maps/overkill.pk3:/q3/osp/overkill.pk3:ro
+
+      # Конфиги. cfg-modes нужен целиком: без него mode_customfile не найдёт
+      # режим, сервер молча уедет в штатный CA — то есть с самоуроном
+      - ./game/osp/server.cfg:/q3/osp/server.cfg:ro
+      - ./game/osp/cfg-modes:/q3/osp/cfg-modes:ro
+      - ./game/osp/cfg-maps/camaps.txt:/q3/osp/cfg-maps/camaps.txt:ro
+      # Пароль rcon. Генерится из .env: just game
+      - ./game/osp/secrets.cfg:/q3/osp/secrets.cfg:ro
+
       # Логи наружу — из них сайт считает рейтинг
-      - ./var/logs:/usr/share/games/quake3/osp/logs
-    command: +set fs_game osp +exec server.cfg
+      - ./var/logs:/q3/osp/logs
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: arena
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?нужен POSTGRES_PASSWORD в .env}
+      POSTGRES_DB: arena
+    ports:
+      # Наружу только на локальный интерфейс: базе нечего делать в интернете
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arena -d arena"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  db-data:

@@ -53,5 +53,14 @@ module.exports = {
     // и `import type` пролезает через любую границу.
     tsPreCompilationDeps: true,
     tsConfig: { fileName: "tsconfig.json" },
+    // Пакет webtransport отдаёт свою серверную сборку под условием "node".
+    // Без него резолвер видит только "browser" и объявляет импорт неразрешимым,
+    // хотя он рабочий. То же условие включено в tsconfig (customConditions).
+    enhancedResolveOptions: {
+      // conditionNames работает только вместе с непустым exportsFields —
+      // так написано в типах самого инструмента
+      exportsFields: ["exports"],
+      conditionNames: ["node", "import", "require", "default", "types"],
+    },
   },
 };

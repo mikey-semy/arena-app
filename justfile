@@ -69,6 +69,64 @@ ci-container:
     @command -v act >/dev/null || { echo "нужен act: pacman -S act"; exit 1; }
     act push --rm
 
+# Игровой контент: свободное скачать, про остальное сказать, чего не хватает
+assets:
+    ./scripts/fetch-assets.sh
+
+# Собрать браузерный клиент в client/www
+client-build:
+    ./scripts/build-client.sh
+
+# Отдать браузерный клиент локально: http://127.0.0.1:8099/
+client: client-build
+    @echo "открой http://127.0.0.1:8099/"
+    cd client/www && python3 -m http.server 8099 --bind 127.0.0.1
+
+# Сертификат для локальной разработки WebTransport (годен 13 суток)
+dev-cert:
+    ./scripts/dev-cert.sh
+
+# Сайт: вход, аккаунты, дальше остальное
+site:
+    pnpm tsx src/server/index.ts
+
+# Браузерное приложение в разработке (запросы к /api уходят на сайт)
+web:
+    pnpm vite
+
+# Собрать браузерное приложение в var/site
+web-build:
+    pnpm vite build
+
+# Сгенерировать миграцию по изменениям в схеме
+db-generate:
+    pnpm drizzle-kit generate
+
+# Применить миграции к базе
+db-migrate:
+    pnpm drizzle-kit migrate
+
+# Выписать ссылку-приглашение: just invite Витя
+invite name:
+    pnpm tsx src/proxy/invite.ts "{{name}}"
+
+# Мост браузер↔игровой сервер: WebTransport снаружи, UDP внутрь
+bridge:
+    pnpm tsx src/proxy/bridge.ts
+
+# Поднять игровой сервер
+game:
+    ./scripts/render-secrets.sh
+    docker compose up q3
+
+# Доставить секреты из локального .env в боевой и перезапустить сайт
+deploy-env *keys:
+    ./scripts/deploy-env.sh {{keys}}
+
+# Выкатить сайт на arena.sethub.org
+deploy:
+    ./scripts/deploy-site.sh
+
 # Собрать образ локально: VPS не должен собирать
 build:
     docker build -t ghcr.io/mikey-semy/arena-app:latest .

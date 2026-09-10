@@ -1,0 +1,29 @@
+arena-app
+=========
+
+Проект целиком под GNU GPL версии 2 — см. LICENSE.
+
+Почему именно так: клиент содержит изменённый ioquake3, а он под GPLv2.
+Отдавая ioquake3.wasm в браузер, мы его распространяем, а значит обязаны
+предоставить исходники изменений. Наши изменения движка — client/engine/,
+кладутся поверх кода ioquake3 при сборке (client/Dockerfile).
+
+Чужое, что здесь используется и НЕ входит в этот репозиторий:
+
+  ioquake3            GPLv2, https://github.com/ioquake/ioq3
+                      Собирается из исходников при сборке образов.
+
+  OSP Tourney DM/CA/CTF 1.03a
+                      Бесплатный мод, автор rhea@OrangeSmoothie.org.
+                      Паки скачиваются при сборке, в репозитории их нет.
+
+  Quake III Arena     Контент id Software. В репозитории его нет и не будет,
+                      мы его не раздаём: игрок указывает свою копию, браузер
+                      держит её у себя. Купить: store.steampowered.com/app/2200
+
+  Логотип Quake III   Товарный знак id Software. Используется как указание на
+                      игру, а не как марка проекта.
+
+  Oswald, IBM Plex    SIL Open Font License 1.1.
+  Логотип Discord     Carbon Design System, Apache-2.0. Знак принадлежит Discord.
+  Логотип Steam       Знак принадлежит Valve.

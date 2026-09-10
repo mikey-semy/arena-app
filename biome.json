@@ -18,5 +18,8 @@
         "organizeImports": "on"
       }
     }
+  },
+  "files": {
+    "includes": ["**", "!client/www", "!game/content", "!var", "!src/server/db/migrations"]
   }
 }

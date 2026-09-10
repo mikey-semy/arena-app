@@ -7,5 +7,8 @@ dist/
 
 # игровой контент и логи — наружу не едут
 /game/maps/
-/var/logs/
+/game/content/
+/client/www/
+/var/
+/game/osp/secrets.cfg
 *.pk3
