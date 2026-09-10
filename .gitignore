@@ -1,0 +1,11 @@
+.env
+.env.local
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+
+# игровой контент и логи — наружу не едут
+/game/maps/
+/var/logs/
+*.pk3

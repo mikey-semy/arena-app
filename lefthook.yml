@@ -1,0 +1,16 @@
+# Гейт по времени: pre-commit 2–5 секунд, нативно, без контейнеров.
+# Если хук поднимает контейнер, через неделю начнёшь коммитить с --no-verify.
+pre-commit:
+  parallel: true
+  commands:
+    check:
+      glob: "*.{js,ts,jsx,tsx,json}"
+      run: pnpm biome check --write {staged_files}
+      stage_fixed: true
+
+commit-msg:
+  commands:
+    commitlint:
+      run: |
+        head -1 {1} | grep -qE '^(feat|fix|refactor|docs|chore|test|perf)(\((game|proxy|site|infra|deps|ci)\))?: .{1,72}$' \
+          || { echo "Формат: тип(scope): описание"; echo "Типы: feat fix refactor docs chore test perf"; echo "Scope: game,proxy,site,infra,deps,ci"; exit 1; }

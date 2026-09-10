@@ -1,0 +1,16 @@
+{
+  "name": "arena-app",
+  "version": "0.1.0",
+  "description": "Clan Arena в браузере: игровой сервер, прокси и сайт вокруг",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "dependency-cruiser": "^18.2.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

@@ -1,0 +1,16 @@
+services:
+  q3:
+    build:
+      context: https://github.com/wokoman/docker-quake3-osp-server.git
+    restart: unless-stopped
+    ports:
+      - "27960:27960/udp"
+    volumes:
+      # Свой pak0.pk3 — в git его нет и не будет. Путь задаётся в .env
+      - ${Q3_PAK0}:/usr/share/games/quake3/baseq3/pak0.pk3:ro
+      # Карта одна: pro-q3dm6
+      - ./game/maps:/usr/share/games/quake3/baseq3/maps-extra:ro
+      - ./game/osp/server.cfg:/usr/share/games/quake3/osp/server.cfg:ro
+      # Логи наружу — из них сайт считает рейтинг
+      - ./var/logs:/usr/share/games/quake3/osp/logs
+    command: +set fs_game osp +exec server.cfg

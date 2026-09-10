@@ -1,0 +1,21 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with:
+          experimental: true
+
+      # Единственный шаг. Источник истины — justfile, workflow его не дублирует:
+      # иначе «локально проходит, в CI падает» становится возможным.
+      - run: just setup
+      - run: just ci

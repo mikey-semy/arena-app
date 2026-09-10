@@ -1,0 +1,11 @@
+# Файл ведёт copier — правки здесь будут затёрты при copier update.
+# Он помнит ответы и версию шаблона, из которой развёрнут проект.
+_commit: v0.3.0
+_src_path: gh:mikey-semy/project-template
+commit_scopes: game,proxy,site,infra,deps,ci
+github_owner: mikey-semy
+node_version: lts
+project_description: 'Clan Arena в браузере: игровой сервер, прокси и сайт вокруг'
+project_name: arena-app
+stack: typescript
+use_docker: true

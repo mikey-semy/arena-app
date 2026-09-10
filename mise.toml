@@ -1,0 +1,8 @@
+[tools]
+node = "lts"
+pnpm = "latest"
+just = "latest"
+lefthook = "latest"
+
+[env]
+_.file = ".env"
