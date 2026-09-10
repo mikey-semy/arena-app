@@ -24,6 +24,8 @@ echo "== подкладываю контент и оболочку"
 ln -sfn ../../game/content/osp "${www}/osp"
 ln -sfn ../../game/maps "${www}/maps"
 cp "${root}/client/shell/index.html" "${www}/index.html"
+# Оболочка вынесена из index.html отдельным файлом: CSP не разрешает inline
+cp "${root}/client/shell/shell.js"   "${www}/shell.js"
 
 # Конфиги мода едут в браузер теми же файлами, что читает выделенный сервер:
 # иначе локальная игра идёт на голых дефолтах OSP — с предметами по всей карте
