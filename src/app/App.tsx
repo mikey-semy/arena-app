@@ -7,6 +7,7 @@ import { Clans } from "../features/clans/Clans.js";
 import { LangSwitch } from "../features/lang/LangSwitch.js";
 import { PlayButton } from "../features/play/PlayButton.js";
 import { Profile } from "../features/profile/Profile.js";
+import { ServerNow } from "../features/server/ServerNow.js";
 import { t } from "../shared/i18n/index.js";
 import { SteamIcon } from "../shared/icons/SteamIcon.js";
 import logo from "./img/q3-logo.png";
@@ -18,6 +19,7 @@ function Home() {
         <h2>{t("app.tagline")}</h2>
         <PlayButton />
       </section>
+      <ServerNow />
       <section className="panel">
         <h2>{t("own.title")}</h2>
         <p className="dim">{t("own.why")}</p>

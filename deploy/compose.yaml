@@ -18,6 +18,11 @@ services:
       # Адрес моста нужен сайту дважды: он его вписывает в ссылку «Играть»
       # и разрешает в заголовке connect-src, иначе браузер запретит соединение
       ARENA_PUBLIC_BRIDGE: arena.sethub.org:27961
+      # Сайт опрашивает игровой сервер и управляет ботами по rcon.
+      # Пароль ходит открытым текстом, поэтому только по внутренней сети.
+      ARENA_GAME_HOST: q3
+      ARENA_GAME_PORT: "27960"
+      Q3_RCON_PASSWORD: ${Q3_RCON_PASSWORD}
     networks: [edge, inside]
     volumes:
       # Браузерный клиент и игровые паки отдаёт сайт: отдельный веб-сервер
@@ -31,6 +36,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      q3:
+        condition: service_started
     mem_limit: 512m
     labels:
       traefik.enable: "true"

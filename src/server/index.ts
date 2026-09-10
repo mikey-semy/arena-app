@@ -26,6 +26,8 @@ import {
 import { changeNick, getConfig, saveConfig, upsertDiscordUser } from "./db/users.js";
 import { checkClanName, checkTag, normalizeTag } from "./game/clanTag.js";
 import { DEFAULTS, sanitizeCvars } from "./game/cvars.js";
+import { serverState } from "./game/query.js";
+import { rcon, rconAvailable } from "./game/rcon.js";
 
 const PORT = Number(process.env.SITE_PORT ?? 3100);
 // Адрес, который видит браузер. В разработке это приложение на 5273, а не мы:
@@ -332,6 +334,35 @@ app.post("/api/admin/role", strict, async (request, reply) => {
   // навсегда. Но тогда он теряет панель — это его осознанный выбор.
   await setRole(body.userId, body.role);
   return reply.send({ ok: true });
+});
+
+/** Состояние сервера прямо сейчас. Видно всем: это витрина, а не управление. */
+app.get("/api/server", normal, async (_request, reply) => {
+  const state = await serverState();
+  if (!state) return reply.code(503).send({ error: "Сервер не отвечает" });
+  return reply.send(state);
+});
+
+/**
+ * Сколько ботов держать. Ноль — играть только с людьми.
+ *
+ * Боты уходят сами, когда приходят люди: bot_minplayers — это нижняя граница
+ * состава, а не количество ботов. Поэтому «включить» и «выключить» тут одно
+ * число, а не тумблер.
+ */
+app.post("/api/server/bots", strict, async (request, reply) => {
+  const admin = await requireAdmin(request, reply);
+  if (!admin) return;
+  if (!rconAvailable()) return reply.code(503).send({ error: "Управление сервером не настроено" });
+
+  const body = request.body as { count?: unknown };
+  const count = Number(body?.count);
+  if (!Number.isInteger(count) || count < 0 || count > 8)
+    return reply.code(400).send({ error: "От 0 до 8" });
+
+  const answer = await rcon(`bot_minplayers ${count}`);
+  if (answer === undefined) return reply.code(502).send({ error: "Игровой сервер не ответил" });
+  return reply.send({ count });
 });
 
 app.get("/api/health", async () => ({ ok: true }));

@@ -38,6 +38,16 @@ export const en: Record<Key, string> = {
 
   "footer.source": "source",
 
+  "server.title": "On the server now",
+  "server.map": "Map",
+  "server.nobody": "Nobody. Be the first",
+  "server.humans": "humans",
+  "server.bots": "bots",
+  "server.offline": "Server is not responding",
+  "server.botCount": "Keep bots",
+  "server.botsOff": "0 = humans only",
+  "server.apply": "Apply",
+
   "clans.title": "Clans",
   "clans.empty": "No clans yet — create the first",
   "clans.create": "Create a clan",

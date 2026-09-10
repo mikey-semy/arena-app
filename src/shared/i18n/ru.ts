@@ -38,6 +38,16 @@ export const ru = {
 
   "footer.source": "исходники",
 
+  "server.title": "Сейчас на сервере",
+  "server.map": "Карта",
+  "server.nobody": "Никого. Заходи первым",
+  "server.humans": "людей",
+  "server.bots": "ботов",
+  "server.offline": "Сервер не отвечает",
+  "server.botCount": "Держать ботов",
+  "server.botsOff": "0 — только люди",
+  "server.apply": "Применить",
+
   "clans.title": "Кланы",
   "clans.empty": "Кланов пока нет — заведи первый",
   "clans.create": "Создать клан",
