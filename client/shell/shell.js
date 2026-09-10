@@ -381,7 +381,9 @@ function gameOver() {
   const box = document.createElement("div");
   box.id = "over";
   const text = document.createElement("p");
-  text.textContent = inRu ? "Ты вышел из игры." : "You left the game.";
+  /* «Игра закрыта», а не «ты вышел»: этим же путём движок уходит и когда
+     падает сам, и утверждать в этом случае, что человек вышел, — неправда. */
+  text.textContent = inRu ? "Игра закрыта." : "The game has closed.";
   const back = document.createElement("button");
   back.type = "button";
   back.className = "pick";
